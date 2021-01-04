@@ -5,18 +5,13 @@ const descElement = document.querySelector(".temperature-description p");
 const locationElement = document.querySelector(".location p");
 
 
-const weather = {
-    temperature : {
-        value: 18,
-        unit: "celsius"
-    },
-    description : "few clouds",
-    iconId : "01d",
-    city: "London",
-    country: "GB"
-};
-
-
+const weather = {};
+weather.temperature = {
+    unit: "celsius"
+}
+const KELVIN = 273;
+//API KEY
+const key = "40ae3e35432d29cd4d9a4bc903a2c394";
 
 if("geolocation" in navigator){
     navigator.geolocation.getCurrentPosition(setPosition, showError);
@@ -25,7 +20,6 @@ if("geolocation" in navigator){
     notificationElement.innerHTML = "<p>Browser doesn't support Geolocation.</p>"
 }
 
-
 function setPosition(position){
     let latitude = position.coords.latitude;
     let longitude = position.coords.longitude;
@@ -33,13 +27,32 @@ function setPosition(position){
     getWeather(latitude, longitude);
 }
 
-
 function showError(error){
     notificationElement.style.display = "block";
     notificationElement.innerHTML = `<p>${error.message}</p>`;
 }
 
 
+
+function getWeather(latitude, longitude){
+    let api = `http://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${key}`;
+    
+    fetch(api)
+        .then(function(response){
+            let data = response.json();
+            return data;
+        })
+        .then(function(data){
+            weather.temperature.value = Math.floor(data.main.temp - KELVIN);
+            weather.description = data.weather[0].description;
+            weather.iconId = data.weather[0].icon;
+            weather.city = data.name;
+            weather.country = data.sys.country;
+        })
+        .then(function(){
+            displayWeather();
+        });
+}
 
 const displayWeather = () => {
 iconElement.innerHTML = `<img src="icons/${weather.iconId}.png"/>`;
